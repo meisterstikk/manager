@@ -1,5 +1,25 @@
 server:
   port: 8080
+
+feignstock: 
+  url: localhost:8088
+
+# feign:
+#   hystrix:
+#     enabled: true
+# # To set thread isolation to SEMAPHORE
+# #hystrix:
+# #  command:
+# #    default:
+# #      execution:
+# #        isolation:
+# #          strategy: SEMAPHORE
+
+# hystrix:
+#   command:
+#     # 전역설정
+#     default:
+#       execution.isolation.thread.timeoutInMilliseconds: 610
 ---
 
 spring:
