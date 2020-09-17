@@ -2,7 +2,7 @@ version: 0.2
 
 env:
   variables:
-    _PROJECT_NAME: "managers"
+    _PROJECT_NAME: "admin27-manager"
 
 phases:
   install:
@@ -95,4 +95,4 @@ phases:
           EOF
 cache:
   paths:
-    - '/root/.m2/**/*'
+    - '/root/.m2/**/*' 
