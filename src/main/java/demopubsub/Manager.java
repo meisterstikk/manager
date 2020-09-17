@@ -1,6 +1,10 @@
 package demopubsub;
 
 import javax.persistence.*;
+
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
@@ -30,9 +34,10 @@ public class Manager {
     //신청건이 접수되어 manager의 객체가 생성된 상태 : 특별히 진행할 내용은 없음
     @PostPersist
     public void onPostPersist(){
-        RentAccepted rentAccepted = new RentAccepted();
-        BeanUtils.copyProperties(this, rentAccepted);
-        rentAccepted.publishAfterCommit();
+        //rentAccept 이벤트 발생
+        RentSubmitted rentSubmitted = new RentSubmitted();
+        BeanUtils.copyProperties(this, rentSubmitted);
+        rentSubmitted.publishAfterCommit();
     }
 
     //신청건의 상태가 변경된 후에 실행되는 것
@@ -45,8 +50,7 @@ public class Manager {
         try{
     //1. 신청건의 상태를 "승인됨ACCEPTED"으로 변경한 경우 실행
             if(this.getApplyStatus().equals("ACCEPTED")) {
-                System.out.println("[HNR_DEBUG] ==================================");
-                System.out.println("[HNR_DEBUG] ==================================");
+                RentAccepted rentAccepted = new RentAccepted();
                 System.out.println("[HNR_DEBUG] ==================================");
                 System.out.println("[HNR_DEBUG] ==================================");
                 System.out.println("[HNR_DEBUG] ==================================");
@@ -54,44 +58,73 @@ public class Manager {
                 System.out.println("[HNR_DEBUG] ==================================");
                 System.out.println("[HNR_DEBUG] ==================================");
                 
-                System.out.println("[HNR_DEBUG] getMouseId() : " + getMouseId()+" qty == "+getQty());
+                System.out.println("======= getMouseId() == " + getMouseId()+"    qty == "+getQty());
                 //ManagerApplication의 feign 사용
                 StockService stockService = ManagerApplication.applicationContext.getBean(StockService.class);
-                stockService.decreaseStock(this.getMouseId(),this.getQty());
-                // pttrainerService.ptScheduleCancellation(getPtOrderId(), "SCHEDULE_CANCELED");
+                Integer curStock = 0;
+                try {
+                    curStock = stockService.getStock(mouseId).getQty();}
+                    catch (Exception e){
+                        this.setApplyStatus("ERROR");
+                    System.out.println("[ERROR] ==================================");
+                    System.out.println("[ERROR] ==================================");
+                    BeanUtils.copyProperties(this, rentAccepted);
+                    rentAccepted.publishAfterCommit();
+                    };
+
+                if(curStock < this.getQty() ){
+                    this.setApplyStatus("PENDING");
+
+                    System.out.println("[REQ QTY] =================================="+ this.getQty().toString());
+                    System.out.println("[RES QTY] =================================="+ curStock.toString());
+                    System.out.println("[PENDING] ==================================");
+                    System.out.println("[PENDING] ==================================");
+                    BeanUtils.copyProperties(this, rentAccepted);
+                    rentAccepted.publishAfterCommit();
+                } else{
+                    //수량 차감
+                    System.out.println("[ACCEPTED] ==================================");
+                    System.out.println("[ACCEPTED] ==================================");
+                    
+                    Stock stock = new Stock();
+                    stock.setId(this.getMouseId());
+                    stock.setQty(this.getQty());
+                    stockService.decreaseStock(stock);
+                    System.out.println("[STOCK REDUCED] ==================================");
+                    System.out.println("[STOCK REDUCED] ==================================");
+
+                    BeanUtils.copyProperties(this, rentAccepted);
+                    rentAccepted.publishAfterCommit();
+               }
+                System.out.println("[REQ QTY] =================================="+ this.getQty().toString());
+                System.out.println("[RES QTY] =================================="+ curStock.toString());
+
                 System.out.println("[HNR_DEBUG] ==================================");
                 System.out.println("[HNR_DEBUG] ==================================");
-                System.out.println("[HNR_DEBUG] ==================================");
-                System.out.println("[HNR_DEBUG] ==================================");
-                System.out.println("[HNR_DEBUG] ==================================");
-                System.out.println("[HNR_DEBUG] ==================================");
-                System.out.println("[HNR_DEBUG] ==================================");
-                System.out.println("[HNR_DEBUG] ==================================");
-                System.out.println("[HNR_DEBUG] ==================================");
-                System.out.println("[HNR_DEBUG] ==================================");
-                System.out.println("[HNR_DEBUG] ==================================");
-                System.out.println("[HNR_DEBUG] ==================================");
-                System.out.println("[HNR_DEBUG] ==================================");
-                
 
                 }
                 
 
-    //2. 신청건의 상태가 "대여됨RENTED"으로 변경한 경우 실행
+    //2. 신청건의 상태가 "대여됨RENTED"으로 변경한 경우 그대로 Publish(VIEW만 바뀐다)
+    if(this.getApplyStatus().equals("RENTED")) {
         RentStarted rentStarted = new RentStarted();
         BeanUtils.copyProperties(this, rentStarted);
         rentStarted.publishAfterCommit();
-        
+    }
     //3. 신청건의 상태가 "취소신청됨"으로 변경한 경우 실행
+    if(this.getApplyStatus().equals("RETURNED")) {
+
         ReturnAccept returnAccept = new ReturnAccept();
         BeanUtils.copyProperties(this, returnAccept);
         returnAccept.publishAfterCommit();
+    }
 
-            } catch (Exception e){
-                e.printStackTrace();
-            }
-
-
+    } catch (Exception e){
+                    e.printStackTrace();
+                    this.setApplyStatus("ERROR");
+                    System.out.println("[ERROR] ==================================");
+                    System.out.println("[ERROR] ==================================");
+                }
 
 
     }

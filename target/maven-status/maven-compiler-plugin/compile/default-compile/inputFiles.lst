@@ -6,8 +6,11 @@
 /home/project/manager/src/main/java/demopubsub/ReturnAccept.java
 /home/project/manager/src/main/java/demopubsub/Manager.java
 /home/project/manager/src/main/java/demopubsub/ManagerController.java
+/home/project/manager/src/main/java/demopubsub/external/Stock.java
+/home/project/manager/src/main/java/demopubsub/RentSubmitted.java
 /home/project/manager/src/main/java/demopubsub/RentApplied.java
 /home/project/manager/src/main/java/demopubsub/AbstractEvent.java
 /home/project/manager/src/main/java/demopubsub/ManagerRepository.java
 /home/project/manager/src/main/java/demopubsub/ManagerApplication.java
 /home/project/manager/src/main/java/demopubsub/StockChanged.java
+/home/project/manager/src/main/java/demopubsub/external/StockService.java

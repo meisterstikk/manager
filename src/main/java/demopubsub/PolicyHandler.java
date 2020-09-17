@@ -1,6 +1,9 @@
 package demopubsub;
 
 import demopubsub.config.kafka.KafkaProcessor;
+
+import java.util.Optional;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,14 +53,26 @@ public class PolicyHandler{
     public void wheneverStockChanged_ConfirmNotify(@Payload StockChanged stockChanged){
 
         if(stockChanged.isMe()){
-            System.out.println("##### listener ConfirmNotify : " + stockChanged.toJson());
+            
         }
     }
     @StreamListener(KafkaProcessor.INPUT)
     public void wheneverReturnApplied_ReturnApply(@Payload ReturnApplied returnApplied){
 
         if(returnApplied.isMe()){
-            System.out.println("##### listener ReturnApply : " + returnApplied.toJson());
+            
+         //반환 신청건에는 신청건 Id, 사번, 마우스종류, 수량, 상태(RETURN_APPLIED)를 지정하고 저장
+
+            
+            Optional<Manager> managerOption = managerRepository.findById(returnApplied.getId());
+            
+            Manager manager = managerOption.get();
+            manager.setApplyStatus("RETURN_APPLIED");
+            managerRepository.save(manager);
+            
+            System.out.println("RETURN_APPLIED========================================");
+            System.out.println("######################################################");
+            System.out.println("######################################################");
         }
     }
 
